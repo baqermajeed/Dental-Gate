@@ -12,7 +12,7 @@ import 'package:dental_gate/firebase_options.dart';
 import 'package:dental_gate/services/fcm_foreground_notifications.dart';
 
 const Duration _fcmTokenTimeout = Duration(seconds: 12);
-
+/////
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
