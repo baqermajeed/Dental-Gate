@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "867862771414",
+    "project_id": "dental-gate-notif",
+    "storage_bucket": "dental-gate-notif.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:867862771414:android:f457b71d9201948dacfb77",
+        "android_client_info": {
+          "package_name": "com.dentalgate.dental_gate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCH88lwviWjfL3hecFpeWzpiZR9AY-1y3g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

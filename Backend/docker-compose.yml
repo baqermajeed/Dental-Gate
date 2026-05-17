@@ -1,0 +1,29 @@
+# MongoDB لتطبيق Dental Gate — التشغيل من مجلد backend:
+#   docker compose up -d
+# الإيقاف:
+#   docker compose down
+# البيانات تُحفظ في volume باسم dental_gate_mongo_data
+#
+# سلسلة الاتصال الافتراضية في التطبيق:
+#   mongodb://localhost:27017/dental_gate_db
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: dental_gate_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: dental_gate_db
+    volumes:
+      - dental_gate_mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  dental_gate_mongo_data:

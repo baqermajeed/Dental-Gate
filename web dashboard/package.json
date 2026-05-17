@@ -1,0 +1,20 @@
+{
+  "name": "web-dashboard",
+  "version": "1.0.0",
+  "description": "Dental Gate web dashboard with MVC structure",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "ejs": "^5.0.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "multer": "^2.1.1"
+  }
+}

@@ -1,0 +1,24 @@
+# IDE / local
+.cursor/
+
+# Secrets
+.env
+.env.*
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Node
+node_modules/
+
+# Flutter / Dart
+.dart_tool/
+.pub-cache/
+build/
+coverage/
+
+# Runtime uploads
+uploads/

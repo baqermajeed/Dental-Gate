@@ -1,0 +1,1 @@
+# Dental Gate API

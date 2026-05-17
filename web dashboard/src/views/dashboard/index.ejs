@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %> | Dental Gate</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Dental Gate Dashboard</h1>
+        <p>Welcome, <%= currentUser.name || currentUser.email || currentUser.phone %></p>
+      </div>
+      <form method="POST" action="/logout">
+        <button type="submit" class="danger">Logout</button>
+      </form>
+    </header>
+
+    <main class="container">
+      <% if (flash) { %>
+      <div class="flash <%= flash.type %>"><%= flash.message %></div>
+      <% } %>
+
+      <section class="card">
+        <h2>Publish New Slider</h2>
+        <p class="subtitle">Backend flow: upload image then create slider (`job_id` + `image_url`).</p>
+        <form method="POST" action="/dashboard/sliders" class="form" enctype="multipart/form-data">
+          <label for="jobId">Job (job_id)</label>
+          <select id="jobId" name="jobId" required>
+            <option value="">Select your job</option>
+            <% myJobs.forEach((job) => { %>
+            <option value="<%= job.id %>">
+              <%= job.workplace_name %> - <%= job.required_specialty %> (<%= job.id %>)
+            </option>
+            <% }) %>
+          </select>
+          <% if (!myJobs.length) { %>
+          <p class="hint">No jobs in `/jobs/mine`. Create a job from app/backend first.</p>
+          <% } %>
+
+          <label for="imageFile">Slider Image</label>
+          <input id="imageFile" name="imageFile" type="file" required accept="image/*" />
+          <button type="submit">Publish Slider</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Backend Sliders</h2>
+        <p class="hint">Source: <%= backendBaseUrl %>/home-sliders</p>
+        <% if (!sliders.length) { %>
+        <p class="empty">No sliders added yet.</p>
+        <% } else { %>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Job ID</th>
+                <th>Image</th>
+                <th>Created At</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% sliders.forEach((slider) => { %>
+              <tr>
+                <td><%= slider.id %></td>
+                <td><%= slider.job_id %></td>
+                <td>
+                  <a href="<%= slider.image_url_absolute %>" target="_blank" rel="noreferrer">View</a>
+                  <img src="<%= slider.image_url_absolute %>" alt="Slider image" class="slider-thumb" />
+                </td>
+                <td><%= slider.created_at || "-" %></td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } %>
+      </section>
+    </main>
+  </body>
+</html>
