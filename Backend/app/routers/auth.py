@@ -4,6 +4,7 @@ from fastapi import APIRouter, Body, Depends, Request, status
 
 from app.rate_limit import limiter
 from app.schemas import (
+    AdminLoginIn,
     DentistRegisterIn,
     FcmTokenIn,
     OTPRequestIn,
@@ -14,6 +15,7 @@ from app.schemas import (
 from app.models.user import User
 from app.security import create_access_token, create_refresh_token, get_current_user
 from app.services.auth_service import (
+    admin_login,
     create_dentist_account,
     refresh_access_token,
     request_otp,
@@ -31,6 +33,17 @@ async def route_request_otp(request: Request, payload: OTPRequestIn):
     """طلب إرسال رمز تحقق OTP إلى رقم الهاتف (نفس مسار ومعدل backend_farah)."""
     await request_otp(payload.phone)
     return {"status": "sent"}
+
+
+@router.post("/admin-login", response_model=Token)
+@limiter.limit("10/minute")
+async def route_admin_login(request: Request, payload: AdminLoginIn):
+    """تسجيل دخول لوحة التحكم (اسم مستخدم + كلمة مرور للمدير فقط)."""
+    access_token, refresh_token, _user = await admin_login(
+        username=payload.username,
+        password=payload.password,
+    )
+    return Token(access_token=access_token, refresh_token=refresh_token)
 
 
 @router.post("/verify-otp")

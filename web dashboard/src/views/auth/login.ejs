@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,31 +10,33 @@
     <main class="auth-wrapper">
       <section class="auth-card">
         <h1>Dental Gate Dashboard</h1>
-        <p class="subtitle">Sign in using backend OTP to manage sliders.</p>
+        <p class="subtitle">تسجيل دخول المدير — اسم المستخدم وكلمة المرور</p>
 
         <% if (flash) { %>
         <div class="flash <%= flash.type %>"><%= flash.message %></div>
         <% } %>
 
-        <form method="POST" action="/login/request-otp" class="form">
-          <label for="phone">Phone Number</label>
-          <input id="phone" name="phone" type="text" required placeholder="07700000001" value="<%= typeof pendingPhone !== 'undefined' ? pendingPhone : '' %>" />
-          <button type="submit">Send OTP</button>
+        <form method="POST" action="/login" class="form">
+          <label for="username">اسم المستخدم</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            required
+            autocomplete="username"
+          />
+
+          <label for="password">كلمة المرور</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password"
+          />
+
+          <button type="submit">تسجيل الدخول</button>
         </form>
-
-        <hr class="separator" />
-
-        <form method="POST" action="/login/verify-otp" class="form">
-          <label for="phoneVerify">Phone Number</label>
-          <input id="phoneVerify" name="phone" type="text" required placeholder="07700000001" value="<%= typeof pendingPhone !== 'undefined' ? pendingPhone : '' %>" />
-
-          <label for="code">OTP Code</label>
-          <input id="code" name="code" type="text" required placeholder="123456" />
-
-          <button type="submit">Verify & Login</button>
-        </form>
-
-        <p class="hint">Backend API: <%= typeof backendBaseUrl !== 'undefined' ? backendBaseUrl : '' %></p>
       </section>
     </main>
   </body>

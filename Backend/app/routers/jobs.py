@@ -19,6 +19,7 @@ from app.schemas.jobs import (
 )
 from app.security import get_current_user
 from app.services import doctor_profile_service as profile_svc
+from app.utils.datetime_utils import ensure_utc
 from app.services.notification_service import (
     notify_application_status_to_applicant,
     notify_new_application_on_my_job,
@@ -82,7 +83,7 @@ async def create_job_posting(
         education=payload.education,
         languages=payload.languages,
         core_skills=payload.core_skills,
-        application_deadline=payload.application_deadline,
+        application_deadline=ensure_utc(payload.application_deadline),
         created_at=now,
         updated_at=now,
     )
@@ -94,11 +95,12 @@ async def create_job_posting(
 async def list_job_postings():
     now = datetime.now(timezone.utc)
     jobs = await JobPosting.find_all().sort(-JobPosting.created_at).to_list()
-    jobs = [
-        j
-        for j in jobs
-        if j.application_deadline is None or j.application_deadline >= now
-    ]
+    active: list[JobPosting] = []
+    for j in jobs:
+        deadline = ensure_utc(j.application_deadline)
+        if deadline is None or deadline >= now:
+            active.append(j)
+    jobs = active
     return [_job_to_out(j) for j in jobs]
 
 
@@ -161,7 +163,7 @@ async def update_job_posting(
     job.education = payload.education
     job.languages = payload.languages
     job.core_skills = payload.core_skills
-    job.application_deadline = payload.application_deadline
+    job.application_deadline = ensure_utc(payload.application_deadline)
     job.updated_at = now
     await job.save()
     return _job_to_out(job)
@@ -365,7 +367,8 @@ async def apply_to_job(
             detail="لا يمكن التقديم على وظيفة قمت بنشرها",
         )
     now = datetime.now(timezone.utc)
-    if job.application_deadline is not None and job.application_deadline < now:
+    deadline = ensure_utc(job.application_deadline)
+    if deadline is not None and deadline < now:
         raise HTTPException(
             status_code=400,
             detail="انتهى موعد التقديم على هذه الوظيفة",

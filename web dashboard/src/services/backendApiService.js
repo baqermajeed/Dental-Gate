@@ -2,13 +2,16 @@ const BACKEND_BASE_URL = (
   process.env.BACKEND_BASE_URL || "https://dentalgate.compassaccuracy.com"
 ).replace(/\/+$/, "");
 
-const jsonHeaders = (accessToken) => {
+const jsonHeaders = (accessToken, internalKey) => {
   const headers = {
     "Content-Type": "application/json",
   };
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
+  }
+  if (internalKey) {
+    headers["X-Internal-Dashboard-Key"] = internalKey;
   }
 
   return headers;
@@ -46,34 +49,19 @@ const withAbsoluteUrl = (urlPath) => {
   return `${BACKEND_BASE_URL}${urlPath.startsWith("/") ? "" : "/"}${urlPath}`;
 };
 
-const requestOtp = async (phone) => {
-  const response = await fetch(`${BACKEND_BASE_URL}/auth/request-otp`, {
-    method: "POST",
-    headers: jsonHeaders(),
-    body: JSON.stringify({ phone: phone.trim() }),
-  });
-  const body = await parseJsonSafe(response);
-  if (!response.ok) {
-    throw buildApiError(response.status, body, "Failed to request OTP");
-  }
-  return body;
-};
-
-const verifyOtp = async (phone, code) => {
-  const response = await fetch(`${BACKEND_BASE_URL}/auth/verify-otp`, {
+const adminLogin = async (username, password) => {
+  const response = await fetch(`${BACKEND_BASE_URL}/auth/admin-login`, {
     method: "POST",
     headers: jsonHeaders(),
     body: JSON.stringify({
-      phone: phone.trim(),
-      code: code.trim(),
+      username: username.trim(),
+      password,
     }),
   });
-
   const body = await parseJsonSafe(response);
   if (!response.ok) {
-    throw buildApiError(response.status, body, "Failed to verify OTP");
+    throw buildApiError(response.status, body, "فشل تسجيل الدخول");
   }
-
   return body;
 };
 
@@ -102,14 +90,14 @@ const getMe = async (accessToken) => {
   return body;
 };
 
-const fetchMyJobs = async (accessToken) => {
-  const response = await fetch(`${BACKEND_BASE_URL}/jobs/mine`, {
+const fetchJobPostings = async () => {
+  const response = await fetch(`${BACKEND_BASE_URL}/jobs`, {
     method: "GET",
-    headers: jsonHeaders(accessToken),
+    headers: jsonHeaders(),
   });
   const body = await parseJsonSafe(response);
   if (!response.ok) {
-    throw buildApiError(response.status, body, "Failed to fetch your jobs");
+    throw buildApiError(response.status, body, "Failed to fetch jobs");
   }
   return Array.isArray(body) ? body : [];
 };
@@ -131,16 +119,22 @@ const fetchHomeSliders = async () => {
   }));
 };
 
-const uploadSliderImage = async (accessToken, file) => {
+const uploadSliderImage = async (accessToken, file, internalKey) => {
   const formData = new FormData();
   const fileBlob = new Blob([file.buffer], { type: file.mimetype });
   formData.append("file", fileBlob, file.originalname);
 
+  const headers = {};
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+  if (internalKey) {
+    headers["X-Internal-Dashboard-Key"] = internalKey;
+  }
+
   const response = await fetch(`${BACKEND_BASE_URL}/home-sliders/upload`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+    headers,
     body: formData,
   });
 
@@ -151,10 +145,10 @@ const uploadSliderImage = async (accessToken, file) => {
   return body;
 };
 
-const createHomeSlider = async (accessToken, payload) => {
+const createHomeSlider = async (accessToken, payload, internalKey) => {
   const response = await fetch(`${BACKEND_BASE_URL}/home-sliders`, {
     method: "POST",
-    headers: jsonHeaders(accessToken),
+    headers: jsonHeaders(accessToken, internalKey),
     body: JSON.stringify(payload),
   });
   const body = await parseJsonSafe(response);
@@ -166,11 +160,10 @@ const createHomeSlider = async (accessToken, payload) => {
 
 module.exports = {
   BACKEND_BASE_URL,
-  requestOtp,
-  verifyOtp,
+  adminLogin,
   refreshToken,
   getMe,
-  fetchMyJobs,
+  fetchJobPostings,
   fetchHomeSliders,
   uploadSliderImage,
   createHomeSlider,

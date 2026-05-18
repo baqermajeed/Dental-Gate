@@ -32,6 +32,14 @@ class Settings(BaseSettings):
     # مفتاح لمسار إنشاء «أشعارات التطبيق» من لوحة التحكم (رأس X-Internal-Notifications-Key)
     INTERNAL_NOTIFICATIONS_KEY: str | None = None
 
+    # تسجيل دخول لوحة التحكم (اسم مستخدم + كلمة مرور فقط)
+    DASHBOARD_ADMIN_USERNAME: str = "admin"
+    DASHBOARD_ADMIN_PASSWORD: str = "admin12345"
+    DASHBOARD_ADMIN_PHONE: str = "dashboard-admin"
+    DASHBOARD_ADMIN_EMAIL: str = "admin@dentalgate.internal"
+    # مفتاح رأس X-Internal-Dashboard-Key لرفع/نشر السلايدر من لوحة التحكم
+    INTERNAL_DASHBOARD_KEY: str | None = None
+
     # مسار ملف JSON لمفتاح حساب الخدمة (Firebase Console → Project settings → Service accounts)
     # مثال: C:/secrets/dental-gate-notif-firebase-adminsdk.json
     FIREBASE_SERVICE_ACCOUNT_JSON: str | None = None

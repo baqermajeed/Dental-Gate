@@ -1,25 +1,31 @@
 const backendApi = require("../services/backendApiService");
+const { DASHBOARD_INTERNAL_KEY } = require("../config/adminConfig");
 
-const ensureAccessToken = async (req) => {
-  const tokens = req.session.tokens;
-  if (!tokens?.accessToken) {
-    throw new Error("Session expired. Please login again.");
+const resolveAuth = async (req) => {
+  const accessToken = req.session.tokens?.accessToken;
+  if (accessToken) {
+    return { accessToken, internalKey: null };
   }
-  return tokens.accessToken;
+  if (DASHBOARD_INTERNAL_KEY) {
+    return { accessToken: null, internalKey: DASHBOARD_INTERNAL_KEY };
+  }
+  throw new Error(
+    "انتهت الجلسة أو لم يُضبط مفتاح لوحة التحكم (DASHBOARD_INTERNAL_KEY). انشر تحديث الباكند أو أضف المفتاح في .env.",
+  );
 };
 
 const withAuthRetry = async (req, action) => {
+  const auth = await resolveAuth(req);
   try {
-    const accessToken = await ensureAccessToken(req);
-    return await action(accessToken);
+    return await action(auth);
   } catch (error) {
-    if (!String(error.message).includes("status: 401")) {
+    if (!String(error.message).includes("status: 401") || !auth.accessToken) {
       throw error;
     }
 
     const refreshValue = req.session.tokens?.refreshToken;
     if (!refreshValue) {
-      throw new Error("Session expired. Please login again.");
+      throw new Error("انتهت الجلسة. سجّل الدخول مرة أخرى.");
     }
 
     const refreshed = await backendApi.refreshToken(refreshValue);
@@ -27,21 +33,24 @@ const withAuthRetry = async (req, action) => {
       accessToken: refreshed.access_token,
       refreshToken: refreshed.refresh_token,
     };
-    return action(req.session.tokens.accessToken);
+    return action({
+      accessToken: req.session.tokens.accessToken,
+      internalKey: null,
+    });
   }
 };
 
 const showDashboard = async (req, res) => {
   try {
-    const [sliders, myJobs] = await Promise.all([
+    const [sliders, jobs] = await Promise.all([
       backendApi.fetchHomeSliders(),
-      withAuthRetry(req, (accessToken) => backendApi.fetchMyJobs(accessToken)),
+      backendApi.fetchJobPostings(),
     ]);
 
     res.render("dashboard/index", {
       title: "Dashboard",
       sliders,
-      myJobs,
+      jobs,
       backendBaseUrl: backendApi.BACKEND_BASE_URL,
     });
   } catch (error) {
@@ -56,7 +65,7 @@ const showDashboard = async (req, res) => {
     return res.render("dashboard/index", {
       title: "Dashboard",
       sliders: [],
-      myJobs: [],
+      jobs: [],
       backendBaseUrl: backendApi.BACKEND_BASE_URL,
     });
   }
@@ -74,12 +83,20 @@ const addSlider = async (req, res) => {
   }
 
   try {
-    await withAuthRetry(req, async (accessToken) => {
-      const upload = await backendApi.uploadSliderImage(accessToken, req.file);
-      await backendApi.createHomeSlider(accessToken, {
-        job_id: jobId.trim(),
-        image_url: upload.url,
-      });
+    await withAuthRetry(req, async ({ accessToken, internalKey }) => {
+      const upload = await backendApi.uploadSliderImage(
+        accessToken,
+        req.file,
+        internalKey,
+      );
+      await backendApi.createHomeSlider(
+        accessToken,
+        {
+          job_id: jobId.trim(),
+          image_url: upload.url,
+        },
+        internalKey,
+      );
     });
 
     req.session.flash = {
