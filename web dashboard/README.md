@@ -4,13 +4,13 @@ Web dashboard built with MVC architecture using Node.js, Express, and EJS.
 
 ## Features
 
-- OTP login connected to backend API (`/auth/request-otp`, `/auth/verify-otp`)
+- Admin login via username/password (`POST /auth/admin-login`)
 - Protected dashboard route with access/refresh token session
 - Slider publishing flow matching backend:
   - Upload image to `/home-sliders/upload`
   - Publish slider to `/home-sliders` with `job_id` and `image_url`
 - Slider list loaded from backend `/home-sliders`
-- Job selector loaded from backend `/jobs/mine`
+- Job selector loaded from backend `/jobs`
 
 ## Project Structure
 
@@ -38,3 +38,8 @@ Open: `http://localhost:3000`
 
 - `BACKEND_BASE_URL` (default: `https://dentalgate.compassaccuracy.com`)
 - `SESSION_SECRET`
+
+Backend admin credentials (override in production via `.env` on the API server):
+
+- `DASHBOARD_ADMIN_USERNAME` (default: `admin`)
+- `DASHBOARD_ADMIN_PASSWORD` (default: `admin12345`)

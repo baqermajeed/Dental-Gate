@@ -1,4 +1,5 @@
 const backendApi = require("../services/backendApiService");
+const { verifyLocalAdmin } = require("../config/adminConfig");
 
 const showLoginPage = (req, res) => {
   if (req.session.user) {
@@ -7,62 +8,42 @@ const showLoginPage = (req, res) => {
 
   return res.render("auth/login", {
     title: "Login",
-    backendBaseUrl: backendApi.BACKEND_BASE_URL,
-    pendingPhone: req.session.pendingPhone || "",
   });
 };
 
-const requestOtp = async (req, res) => {
-  const { phone } = req.body;
-  if (!phone?.trim()) {
-    req.session.flash = { type: "error", message: "Phone number is required." };
-    return res.redirect("/login");
-  }
-
-  try {
-    await backendApi.requestOtp(phone);
-    req.session.pendingPhone = phone.trim();
-    req.session.flash = {
-      type: "success",
-      message: "OTP sent successfully. Enter the code to continue.",
-    };
-    return res.redirect("/login");
-  } catch (error) {
+const login = async (req, res) => {
+  const { username, password } = req.body;
+  if (!username?.trim() || !password) {
     req.session.flash = {
       type: "error",
-      message: error.message,
+      message: "اسم المستخدم وكلمة المرور مطلوبان.",
     };
     return res.redirect("/login");
   }
-};
 
-const verifyOtp = async (req, res) => {
-  const { code, phone } = req.body;
-  const targetPhone = phone?.trim() || req.session.pendingPhone;
-
-  if (!targetPhone || !code?.trim()) {
+  if (!verifyLocalAdmin(username.trim(), password)) {
     req.session.flash = {
       type: "error",
-      message: "Phone number and OTP code are required.",
+      message: "اسم المستخدم أو كلمة المرور غير صحيحة.",
     };
     return res.redirect("/login");
   }
 
-  try {
-    const verification = await backendApi.verifyOtp(targetPhone, code);
-    if (!verification?.account_exists || !verification?.token) {
-      req.session.flash = {
-        type: "error",
-        message: "This phone has no account on backend. Create account in app first.",
-      };
-      return res.redirect("/login");
-    }
+  req.session.user = {
+    id: "dashboard-admin",
+    phone: "dashboard-admin",
+    email: "admin@dentalgate.internal",
+    name: "Dashboard Admin",
+    role: "admin",
+  };
+  req.session.tokens = null;
 
+  try {
+    const tokens = await backendApi.adminLogin(username.trim(), password);
     req.session.tokens = {
-      accessToken: verification.token.access_token,
-      refreshToken: verification.token.refresh_token,
+      accessToken: tokens.access_token,
+      refreshToken: tokens.refresh_token,
     };
-
     const me = await backendApi.getMe(req.session.tokens.accessToken);
     req.session.user = {
       id: me.id,
@@ -71,17 +52,23 @@ const verifyOtp = async (req, res) => {
       name: me.name,
       role: me.role,
     };
-
-    req.session.pendingPhone = targetPhone;
-    req.session.flash = {
-      type: "success",
-      message: "Logged in via backend successfully.",
-    };
-    return res.redirect("/dashboard");
   } catch (error) {
-    req.session.flash = { type: "error", message: error.message };
-    return res.redirect("/login");
+    const is404 = String(error.message).includes("404");
+    if (!is404) {
+      req.session.flash = {
+        type: "error",
+        message: error.message,
+      };
+      req.session.user = null;
+      return res.redirect("/login");
+    }
   }
+
+  req.session.flash = {
+    type: "success",
+    message: "تم تسجيل الدخول بنجاح.",
+  };
+  return res.redirect("/dashboard");
 };
 
 const logout = (req, res) => {
@@ -92,7 +79,6 @@ const logout = (req, res) => {
 
 module.exports = {
   showLoginPage,
-  requestOtp,
-  verifyOtp,
+  login,
   logout,
 };

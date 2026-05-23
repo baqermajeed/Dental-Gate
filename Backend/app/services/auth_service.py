@@ -1,6 +1,9 @@
+from datetime import datetime, timezone
+
 from fastapi import HTTPException
 from beanie import PydanticObjectId as OID
 
+from app.config import get_settings
 from app.constants import Role
 from app.models import User
 from app.models.doctor_profile import DoctorProfile
@@ -92,6 +95,48 @@ async def create_dentist_account(
     await profile.insert()
     await experience_score_svc.recompute_and_persist_for_user(user.id)
     return user
+
+
+async def get_or_create_dashboard_admin_user() -> User:
+    settings = get_settings()
+    admin_phone = settings.DASHBOARD_ADMIN_PHONE.strip()
+    admin_email = settings.DASHBOARD_ADMIN_EMAIL.strip().lower()
+    user = await User.find_one(User.phone == admin_phone)
+    now = datetime.now(timezone.utc)
+    if not user:
+        user = User(
+            name="Dashboard Admin",
+            phone=admin_phone,
+            email=admin_email,
+            role=Role.ADMIN,
+            created_at=now,
+            updated_at=now,
+        )
+        await user.insert()
+    elif user.role != Role.ADMIN:
+        user.role = Role.ADMIN
+        user.updated_at = now
+        await user.save()
+    return user
+
+
+async def admin_login(*, username: str, password: str) -> tuple[str, str, User]:
+    """تسجيل دخول لوحة التحكم — حساب مدير داخلي فقط (ليس OTP)."""
+    settings = get_settings()
+    expected_user = settings.DASHBOARD_ADMIN_USERNAME.strip()
+    if username.strip() != expected_user or password != settings.DASHBOARD_ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="اسم المستخدم أو كلمة المرور غير صحيحة")
+
+    user = await get_or_create_dashboard_admin_user()
+    token_data = {
+        "sub": str(user.id),
+        "role": user.role.value,
+        "phone": user.phone,
+        "email": user.email,
+    }
+    access_token = create_access_token(token_data)
+    refresh_token = create_refresh_token(token_data)
+    return access_token, refresh_token, user
 
 
 async def refresh_access_token(refresh_token: str) -> tuple[str, str]:

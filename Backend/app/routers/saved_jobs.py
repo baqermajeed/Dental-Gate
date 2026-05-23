@@ -8,6 +8,7 @@ from app.models.saved_job import SavedJob
 from app.models.user import User
 from app.schemas.jobs import JobPostingOut
 from app.security import get_current_user
+from app.utils.datetime_utils import ensure_utc
 
 router = APIRouter(prefix="/saved-jobs", tags=["saved-jobs"])
 
@@ -44,7 +45,8 @@ async def list_saved_jobs(current: User = Depends(get_current_user)):
     out: list[JobPostingOut] = []
     for s in saved:
         job = await JobPosting.get(s.job_id)
-        if job and (job.application_deadline is None or job.application_deadline >= now):
+        deadline = ensure_utc(job.application_deadline) if job else None
+        if job and (deadline is None or deadline >= now):
             out.append(_job_to_out(job))
     return out
 

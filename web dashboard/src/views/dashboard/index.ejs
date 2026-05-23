@@ -28,15 +28,15 @@
         <form method="POST" action="/dashboard/sliders" class="form" enctype="multipart/form-data">
           <label for="jobId">Job (job_id)</label>
           <select id="jobId" name="jobId" required>
-            <option value="">Select your job</option>
-            <% myJobs.forEach((job) => { %>
+            <option value="">اختر وظيفة</option>
+            <% jobs.forEach((job) => { %>
             <option value="<%= job.id %>">
               <%= job.workplace_name %> - <%= job.required_specialty %> (<%= job.id %>)
             </option>
             <% }) %>
           </select>
-          <% if (!myJobs.length) { %>
-          <p class="hint">No jobs in `/jobs/mine`. Create a job from app/backend first.</p>
+          <% if (!jobs.length) { %>
+          <p class="hint">لا توجد وظائف في النظام. أنشئ وظيفة من التطبيق أولاً.</p>
           <% } %>
 
           <label for="imageFile">Slider Image</label>

@@ -10,7 +10,7 @@ from app.models.home_slider import HomeSlider
 from app.models.job import JobPosting
 from app.models.user import User
 from app.schemas.home_slider import HomeSliderCreateIn, HomeSliderOut
-from app.security import get_current_user
+from app.security.dashboard import get_slider_manager
 
 router = APIRouter(prefix="/home-sliders", tags=["home-sliders"])
 settings = get_settings()
@@ -38,9 +38,8 @@ async def list_home_sliders():
 @router.post("", response_model=HomeSliderOut, status_code=status.HTTP_201_CREATED)
 async def create_home_slider(
     payload: HomeSliderCreateIn,
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_slider_manager),
 ):
-    _ = current
     try:
         job_oid = PydanticObjectId(payload.job_id)
     except Exception:
@@ -63,7 +62,7 @@ async def create_home_slider(
 
 @router.post("/upload", response_model=dict)
 async def upload_slider_image(
-    current: User = Depends(get_current_user),
+    current: User = Depends(get_slider_manager),
     file: UploadFile = File(..., description="صورة السلايدر"),
 ):
     ct = (file.content_type or "").split(";")[0].strip().lower()

@@ -10,8 +10,7 @@ router.get("/", (req, res) => {
   return res.redirect("/login");
 });
 router.get("/login", authController.showLoginPage);
-router.post("/login/request-otp", authController.requestOtp);
-router.post("/login/verify-otp", authController.verifyOtp);
+router.post("/login", authController.login);
 router.post("/logout", authController.logout);
 
 module.exports = router;
