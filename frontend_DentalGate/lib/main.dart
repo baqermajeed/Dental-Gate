@@ -15,6 +15,7 @@ const Duration _fcmTokenTimeout = Duration(seconds: 12);
 /////
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  if (!DefaultFirebaseOptions.isCurrentPlatformConfigured) return;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 }
 
@@ -44,6 +45,13 @@ Future<void> _logFcmToken() async {
 }
 
 Future<void> _initFirebase() async {
+  if (!DefaultFirebaseOptions.isCurrentPlatformConfigured) {
+    debugPrint(
+      'Firebase: تخطي التهيئة — أضف تطبيق iOS في مشروع dental-gate-notif '
+      'ثم شغّل: dart pub global activate flutterfire_cli && flutterfire configure',
+    );
+    return;
+  }
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

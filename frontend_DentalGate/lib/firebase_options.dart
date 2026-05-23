@@ -1,11 +1,19 @@
-// أندرويد: متزامن مع android/app/google-services.json (مشروع dental-gate-notif).
-// لإضافة iOS/Web شغّل: flutterfire configure
+// متزامن مع android/app/google-services.json و ios/Runner/GoogleService-Info.plist
+// (مشروع dental-gate-notif). Web: flutterfire configure
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 class DefaultFirebaseOptions {
+  /// false على iOS/Web طالما لم تُستبدل قيم REPLACE_* (تجنّب تعطّل Firebase الأصلي).
+  static bool get isCurrentPlatformConfigured {
+    final options = currentPlatform;
+    return !options.apiKey.contains('REPLACE') &&
+        !options.projectId.contains('replace-me') &&
+        options.messagingSenderId != '000000000000';
+  }
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -45,11 +53,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_IOS_API_KEY',
-    appId: '1:000000000000:ios:0000000000000000000000',
-    messagingSenderId: '000000000000',
-    projectId: 'dental-gate-replace-me',
-    storageBucket: 'dental-gate-replace-me.appspot.com',
+    apiKey: 'AIzaSyDTtZPttwMdKJvw6FG8qiGSkjuZjWylEZU',
+    appId: '1:867862771414:ios:62e667921fc47b80acfb77',
+    messagingSenderId: '867862771414',
+    projectId: 'dental-gate-notif',
+    storageBucket: 'dental-gate-notif.firebasestorage.app',
     iosBundleId: 'com.dentalgate.dentalGate',
   );
 }

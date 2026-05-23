@@ -212,7 +212,7 @@ class _CreateJobViewState extends State<CreateJobView> {
                   margin: EdgeInsets.only(top: 8.h),
                   color: const Color(0xFFFDFEFF),
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 150.h),
+                    padding: EdgeInsets.fromLTRB(14.w, 14.h, 14.w, 24.h),
                     child: Column(
                       children: [
                         _sectionCard(
@@ -221,7 +221,6 @@ class _CreateJobViewState extends State<CreateJobView> {
                           onToggle: () =>
                               setState(() => _basicOpen = !_basicOpen),
                           cardRadius: 22,
-                          openHeight: 710,
                           bodyPadding: EdgeInsets.all(16.r),
                           child: _basicSectionBody(),
                         ),
@@ -284,11 +283,10 @@ class _CreateJobViewState extends State<CreateJobView> {
     required VoidCallback onToggle,
     required Widget child,
     double cardRadius = 16,
-    double? openHeight,
     EdgeInsetsGeometry? bodyPadding,
   }) {
     final card = Container(
-      width: 353.w,
+      width: double.infinity,
       decoration: BoxDecoration(
         color: const Color(0xFFFDFEFF),
         borderRadius: BorderRadius.circular(cardRadius.r),
@@ -302,6 +300,7 @@ class _CreateJobViewState extends State<CreateJobView> {
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           InkWell(
             onTap: onToggle,
@@ -346,14 +345,12 @@ class _CreateJobViewState extends State<CreateJobView> {
         ],
       ),
     );
-    if (open && openHeight != null) {
-      return SizedBox(width: 353.w, height: openHeight.h, child: card);
-    }
     return card;
   }
 
   Widget _basicSectionBody() {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(height: 0.h),
         Container(
@@ -2034,52 +2031,52 @@ class _CreateJobViewState extends State<CreateJobView> {
   }
 
   Widget _bottomBar() {
-    return Center(
-      child: SizedBox(
-        width: 393.w,
-        height: 149.h,
-        child: Container(
-          padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 16.h),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFDFEFF),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(44.r),
-              topRight: Radius.circular(44.r),
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1A000000),
-                offset: Offset(0, -1),
-                blurRadius: 16.1,
-                spreadRadius: 0,
-              ),
-            ],
+    return SafeArea(
+      top: false,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 16.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDFEFF),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(44.r),
+            topRight: Radius.circular(44.r),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 353.w,
-                height: 48.h,
-                decoration: BoxDecoration(
-                  color: const Color(0x1AFF9914),
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 0),
-                child: Row(
-                  textDirection: TextDirection.rtl,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/onboarding_cosmetics/الملاحضة.png',
-                      width: 18.w,
-                      height: 18.h,
-                      fit: BoxFit.contain,
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              offset: Offset(0, -1),
+              blurRadius: 16.1,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              constraints: BoxConstraints(minHeight: 48.h),
+              decoration: BoxDecoration(
+                color: const Color(0x1AFF9914),
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+              child: Row(
+                textDirection: TextDirection.rtl,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Image.asset(
+                    'assets/onboarding_cosmetics/الملاحضة.png',
+                    width: 18.w,
+                    height: 18.h,
+                    fit: BoxFit.contain,
+                  ),
+                  SizedBox(width: 8.w),
+                  Expanded(
+                    child: Text(
                       'أي حقل يُترك فارغ لن يظهر ضمن المتطلبات.',
-                      textAlign: TextAlign.center,
+                      textAlign: TextAlign.right,
                       style: TextStyle(
                         fontFamily: 'Lama Sans',
                         fontWeight: FontWeight.w700,
@@ -2088,9 +2085,10 @@ class _CreateJobViewState extends State<CreateJobView> {
                         color: const Color(0xFFDC810A),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
               SizedBox(height: 16.h),
               Row(
                 children: [
@@ -2167,7 +2165,6 @@ class _CreateJobViewState extends State<CreateJobView> {
             ],
           ),
         ),
-      ),
     );
   }
 }

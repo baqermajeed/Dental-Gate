@@ -239,8 +239,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
             padding: EdgeInsets.symmetric(horizontal: 20.w),
             child: Form(
               key: _formKey,
-              child: Column(
-                children: [
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.only(bottom: 24.h),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                   SizedBox(height: 10.h),
                   SizedBox(
                     width: 100.w,
@@ -277,7 +282,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   SizedBox(height: 12.h),
                   _Field(
                     hint: 'اكتب اسمك',
-                    width: 353.w,
+                    width: double.infinity,
                     controller: _nameController,
                     keyboardType: TextInputType.name,
                     validator: _validateName,
@@ -285,7 +290,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   SizedBox(height: 12.h),
                   _Field(
                     hint: 'اكتب رقم هاتفك',
-                    width: 353.w,
+                    width: double.infinity,
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
@@ -296,7 +301,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   SizedBox(height: 12.h),
                   SizedBox(
-                    width: 353.w,
+                    width: double.infinity,
                     child: Row(
                       children: [
                         Expanded(
@@ -323,7 +328,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   SizedBox(height: 12.h),
                   ModernPickerField(
-                    width: 353.w,
+                    width: double.infinity,
                     hint: 'اختر المحافظة',
                     value: _selectedGovernorate,
                     icon: Icons.location_on_rounded,
@@ -343,7 +348,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   SizedBox(height: 12.h),
                   ModernPickerField(
-                    width: 353.w,
+                    width: double.infinity,
                     hint: 'اختر التخصص',
                     value: _selectedSpecialty,
                     icon: Icons.medical_services_rounded,
@@ -363,7 +368,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   SizedBox(height: 12.h),
                   _BirthDateTile(
-                    width: 353.w,
+                    width: double.infinity,
                     birthDate: _birthDate,
                     format: _formatBirthDisplay,
                     ageYears: _birthDate == null
@@ -375,14 +380,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   SizedBox(height: 12.h),
                   _Field(
                     hint: 'اكتب ايميلك',
-                    width: 353.w,
+                    width: double.infinity,
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     validator: _validateEmail,
                   ),
                   SizedBox(height: 12.h),
                   SizedBox(
-                    width: 353.w,
+                    width: double.infinity,
                     height: 56.h,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -457,8 +462,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ],
                   ),
-                  const Spacer(),
                 ],
+                ),
               ),
             ),
           ),
