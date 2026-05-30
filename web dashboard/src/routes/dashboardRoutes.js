@@ -12,5 +12,10 @@ router.post(
   uploadSliderImage.single("imageFile"),
   dashboardController.addSlider,
 );
+router.post(
+  "/dashboard/notifications",
+  ensureAuthenticated,
+  dashboardController.sendAppAnnouncement,
+);
 
 module.exports = router;

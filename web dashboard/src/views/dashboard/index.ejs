@@ -23,6 +23,39 @@
       <% } %>
 
       <section class="card">
+        <h2>Send App Notification</h2>
+        <p class="subtitle">
+          Backend flow: `POST /notifications/app-announcement` with `X-Internal-Notifications-Key`.
+        </p>
+        <form method="POST" action="/dashboard/notifications" class="form">
+          <label for="notificationTitle">Title</label>
+          <input id="notificationTitle" name="title" required maxlength="200" />
+
+          <label for="notificationBody">Body</label>
+          <textarea id="notificationBody" name="body" required rows="3" maxlength="2000"></textarea>
+
+          <label class="checkbox" for="sendToAll">
+            <input id="sendToAll" name="sendToAll" type="checkbox" />
+            Send to all app users
+          </label>
+
+          <label for="recipientUserIds">Recipient User IDs</label>
+          <textarea
+            id="recipientUserIds"
+            name="recipientUserIds"
+            required
+            rows="4"
+            placeholder="Put one user_id per line or separate by comma"
+          ></textarea>
+          <p class="hint">
+            مثال: 665cd6ec6f9bba029f95e500, 665cd6ec6f9bba029f95e501
+          </p>
+
+          <button type="submit">Send Notification</button>
+        </form>
+      </section>
+
+      <section class="card">
         <h2>Publish New Slider</h2>
         <p class="subtitle">Backend flow: upload image then create slider (`job_id` + `image_url`).</p>
         <form method="POST" action="/dashboard/sliders" class="form" enctype="multipart/form-data">
@@ -79,5 +112,24 @@
         <% } %>
       </section>
     </main>
+    <script>
+      const sendToAllInput = document.getElementById("sendToAll");
+      const recipientsInput = document.getElementById("recipientUserIds");
+
+      const toggleRecipientsState = () => {
+        const disabled = sendToAllInput.checked;
+        recipientsInput.disabled = disabled;
+        recipientsInput.required = !disabled;
+        if (disabled) {
+          recipientsInput.value = "";
+          recipientsInput.placeholder = "Disabled when sending to all users";
+        } else {
+          recipientsInput.placeholder = "Put one user_id per line or separate by comma";
+        }
+      };
+
+      sendToAllInput.addEventListener("change", toggleRecipientsState);
+      toggleRecipientsState();
+    </script>
   </body>
 </html>

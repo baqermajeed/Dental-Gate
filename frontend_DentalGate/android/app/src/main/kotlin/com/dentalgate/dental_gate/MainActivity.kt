@@ -1,4 +1,4 @@
-package com.dentalgate.dental_gate
+package com.baqer.dentalgate
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

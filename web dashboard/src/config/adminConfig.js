@@ -5,6 +5,11 @@ const DASHBOARD_INTERNAL_KEY = (
   process.env.INTERNAL_DASHBOARD_KEY ||
   ""
 ).trim();
+const DASHBOARD_NOTIFICATIONS_KEY = (
+  process.env.DASHBOARD_NOTIFICATIONS_KEY ||
+  process.env.INTERNAL_NOTIFICATIONS_KEY ||
+  ""
+).trim();
 
 const verifyLocalAdmin = (username, password) => {
   return username.trim() === ADMIN_USERNAME && password === ADMIN_PASSWORD;
@@ -13,5 +18,6 @@ const verifyLocalAdmin = (username, password) => {
 module.exports = {
   ADMIN_USERNAME,
   DASHBOARD_INTERNAL_KEY,
+  DASHBOARD_NOTIFICATIONS_KEY,
   verifyLocalAdmin,
 };

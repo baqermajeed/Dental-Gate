@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, Security
 from fastapi.security import APIKeyHeader
 
 from app.config import get_settings
+from app.constants import Role
 from app.models.notification import InAppNotificationType, UserNotification
 from app.models.user import User
 from app.schemas.notifications import (
@@ -183,18 +184,25 @@ async def post_app_announcement(
     payload: AppAnnouncementCreateIn,
 ):
     """
-    ينشئ إشعار `app_announcement` لكل معرف في `recipient_user_ids`.
+    ينشئ إشعار `app_announcement`:
+    - لكل معرف في `recipient_user_ids`، أو
+    - لكل مستخدمي التطبيق عند تمرير `send_to_all=true`.
     أرسل الرأس: **X-Internal-Notifications-Key** بقيمة **INTERNAL_NOTIFICATIONS_KEY** من البيئة.
     """
     oids: list[PydanticObjectId] = []
-    for raw in payload.recipient_user_ids:
-        try:
-            oids.append(PydanticObjectId(raw.strip()))
-        except Exception:
-            raise HTTPException(
-                status_code=400,
-                detail=f"معرف مستخدم غير صالح: {raw!r}",
-            )
+
+    if payload.send_to_all:
+        users = await User.find(User.role == Role.DENTIST).to_list()
+        oids = [PydanticObjectId(u.id) for u in users]
+    else:
+        for raw in payload.recipient_user_ids or []:
+            try:
+                oids.append(PydanticObjectId(raw.strip()))
+            except Exception:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"معرف مستخدم غير صالح: {raw!r}",
+                )
     try:
         n = await create_app_announcements_for_recipients(
             recipient_ids=oids,

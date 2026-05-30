@@ -1,5 +1,8 @@
 const backendApi = require("../services/backendApiService");
-const { DASHBOARD_INTERNAL_KEY } = require("../config/adminConfig");
+const {
+  DASHBOARD_INTERNAL_KEY,
+  DASHBOARD_NOTIFICATIONS_KEY,
+} = require("../config/adminConfig");
 
 const resolveAuth = async (req) => {
   const accessToken = req.session.tokens?.accessToken;
@@ -113,7 +116,77 @@ const addSlider = async (req, res) => {
   }
 };
 
+const sendAppAnnouncement = async (req, res) => {
+  const { title, body, recipientUserIds, sendToAll } = req.body;
+  const shouldSendToAll = sendToAll === "on";
+
+  if (!title?.trim() || !body?.trim()) {
+    req.session.flash = {
+      type: "error",
+      message: "Title and body are required.",
+    };
+    return res.redirect("/dashboard");
+  }
+
+  const recipients = shouldSendToAll
+    ? []
+    : [...new Set(
+        (recipientUserIds || "")
+          .split(/[\n,]+/)
+          .map((value) => value.trim())
+          .filter(Boolean),
+      )];
+
+  if (!shouldSendToAll && !recipients.length) {
+    req.session.flash = {
+      type: "error",
+      message: "Please provide at least one valid recipient user id.",
+    };
+    return res.redirect("/dashboard");
+  }
+
+  if (!DASHBOARD_NOTIFICATIONS_KEY) {
+    req.session.flash = {
+      type: "error",
+      message:
+        "Missing DASHBOARD_NOTIFICATIONS_KEY (or INTERNAL_NOTIFICATIONS_KEY) in dashboard env.",
+    };
+    return res.redirect("/dashboard");
+  }
+
+  try {
+    const payload = {
+      title: title.trim(),
+      body: body.trim(),
+      send_to_all: shouldSendToAll,
+    };
+    if (!shouldSendToAll) {
+      payload.recipient_user_ids = recipients;
+    }
+
+    const result = await backendApi.createAppAnnouncement(
+      payload,
+      DASHBOARD_NOTIFICATIONS_KEY,
+    );
+
+    req.session.flash = {
+      type: "success",
+      message: shouldSendToAll
+        ? `Notification sent to all app users. Created: ${result.created ?? 0}`
+        : `Notification sent successfully. Created: ${result.created ?? recipients.length}`,
+    };
+    return res.redirect("/dashboard");
+  } catch (error) {
+    req.session.flash = {
+      type: "error",
+      message: error.message,
+    };
+    return res.redirect("/dashboard");
+  }
+};
+
 module.exports = {
   showDashboard,
   addSlider,
+  sendAppAnnouncement,
 };

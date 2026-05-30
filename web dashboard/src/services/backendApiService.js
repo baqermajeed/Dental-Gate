@@ -158,6 +158,24 @@ const createHomeSlider = async (accessToken, payload, internalKey) => {
   return body;
 };
 
+const createAppAnnouncement = async (payload, notificationsKey) => {
+  const headers = jsonHeaders();
+  if (notificationsKey) {
+    headers["X-Internal-Notifications-Key"] = notificationsKey;
+  }
+
+  const response = await fetch(`${BACKEND_BASE_URL}/notifications/app-announcement`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+  const body = await parseJsonSafe(response);
+  if (!response.ok) {
+    throw buildApiError(response.status, body, "Failed to publish app announcement");
+  }
+  return body;
+};
+
 module.exports = {
   BACKEND_BASE_URL,
   adminLogin,
@@ -167,5 +185,6 @@ module.exports = {
   fetchHomeSliders,
   uploadSliderImage,
   createHomeSlider,
+  createAppAnnouncement,
   withAbsoluteUrl,
 };

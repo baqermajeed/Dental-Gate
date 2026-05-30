@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
 
 from app.models.notification import InAppNotificationType
 
@@ -44,11 +44,22 @@ class AppAnnouncementCreateIn(BaseModel):
 
     title: str = Field(..., min_length=1)
     body: str = Field(..., min_length=1)
-    recipient_user_ids: list[str] = Field(
-        ...,
-        min_length=1,
+    send_to_all: bool = Field(
+        default=False,
+        description="إن كانت true يتم الإرسال لكل مستخدمي التطبيق (dentist)",
+    )
+    recipient_user_ids: list[str] | None = Field(
+        default=None,
         description="قائمة معرفات المستخدمين (نفس sub في JWT)",
     )
+
+    @model_validator(mode="after")
+    def _validate_targets(self) -> "AppAnnouncementCreateIn":
+        if self.send_to_all:
+            return self
+        if not self.recipient_user_ids or len(self.recipient_user_ids) == 0:
+            raise ValueError("recipient_user_ids is required when send_to_all is false")
+        return self
 
 
 class UnreadCountOut(BaseModel):
