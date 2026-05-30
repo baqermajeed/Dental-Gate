@@ -36,6 +36,8 @@ npm install
 npm run dev
 ```
 
+Copy `.env` and set `DASHBOARD_NOTIFICATIONS_KEY` to the same value as backend `INTERNAL_NOTIFICATIONS_KEY` (e.g. `123456`).
+
 Open: `http://localhost:3000`
 
 ## Environment Variables

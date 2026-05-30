@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 from typing import Any
@@ -23,8 +24,10 @@ def _ensure_firebase_app() -> bool:
     global _firebase_config_warned
     if firebase_admin._apps:
         return True
-    path = (get_settings().FIREBASE_SERVICE_ACCOUNT_JSON or "").strip()
-    if not path or not os.path.isfile(path):
+    service_account_raw = (get_settings().FIREBASE_SERVICE_ACCOUNT_JSON or "").strip()
+    if not service_account_raw:
+        service_account_raw = (os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or "").strip()
+    if not service_account_raw:
         if not _firebase_config_warned:
             _firebase_config_warned = True
             logger.warning(
@@ -32,8 +35,21 @@ def _ensure_firebase_app() -> bool:
                 "أضف في .env مسار ملف JSON من Firebase Console → Project settings → Service accounts",
             )
         return False
+    cert_value: str | dict[str, Any]
+    if os.path.isfile(service_account_raw):
+        cert_value = service_account_raw
+    else:
+        try:
+            cert_value = json.loads(service_account_raw)
+        except json.JSONDecodeError:
+            if not _firebase_config_warned:
+                _firebase_config_warned = True
+                logger.warning(
+                    "FIREBASE_SERVICE_ACCOUNT_JSON ليس مسار ملف صحيحاً ولا JSON صالحاً — لن تُرسل إشعارات الدفع.",
+                )
+            return False
     try:
-        cred = credentials.Certificate(path)
+        cred = credentials.Certificate(cert_value)
         firebase_admin.initialize_app(cred)
         return True
     except Exception:
