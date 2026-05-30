@@ -14,7 +14,17 @@ class FcmRegistrationService {
   bool _listeningRefresh = false;
 
   Future<void> syncToBackend() async {
-    if (Firebase.apps.isEmpty) return;
+    if (Firebase.apps.isEmpty) {
+      // قد يُستدعى هذا مباشرة بعد تسجيل الدخول قبل اكتمال initFirebase.
+      for (var i = 0; i < 4; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+        if (Firebase.apps.isNotEmpty) break;
+      }
+      if (Firebase.apps.isEmpty) {
+        debugPrint('FcmRegistrationService: Firebase غير مهيأ بعد');
+        return;
+      }
+    }
     try {
       final messaging = FirebaseMessaging.instance;
       if (!kIsWeb) {

@@ -47,7 +47,11 @@ async def notify_new_application_on_my_job(
             recipient_id=job.posted_by,
             title=n.title,
             body=n.body,
-            data={"notification_id": str(n.id), "type": n.type.value},
+            data={
+                "notification_id": str(n.id),
+                "type": n.type.value,
+                "screen": "notifications",
+            },
         )
     except Exception:
         logger.exception("FCM after job application notification")
@@ -89,7 +93,11 @@ async def notify_application_status_to_applicant(
             recipient_id=applicant_id,
             title=n.title,
             body=n.body,
-            data={"notification_id": str(n.id), "type": n.type.value},
+            data={
+                "notification_id": str(n.id),
+                "type": n.type.value,
+                "screen": "notifications",
+            },
         )
     except Exception:
         logger.exception("FCM after application status notification")
@@ -123,7 +131,11 @@ async def create_app_announcements_for_recipients(
                 recipient_id=rid,
                 title=n.title,
                 body=n.body,
-                data={"notification_id": str(n.id), "type": n.type.value},
+                data={
+                    "notification_id": str(n.id),
+                    "type": n.type.value,
+                    "screen": "notifications",
+                },
             )
         except Exception:
             logger.exception("FCM after app announcement for %s", rid)

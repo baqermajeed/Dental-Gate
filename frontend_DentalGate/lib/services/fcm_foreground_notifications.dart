@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart'
     show TargetPlatform, debugPrint, defaultTargetPlatform;
@@ -13,6 +15,7 @@ class FcmForegroundNotifications {
   static const _channelId = 'dental_gate_push';
   static const _channelName = 'Dental Gate';
   static bool _initialized = false;
+  static void Function(Map<String, dynamic> data)? onNotificationTap;
 
   static Future<void> init() async {
     if (_initialized) return;
@@ -23,6 +26,26 @@ class FcmForegroundNotifications {
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _plugin.initialize(
       settings: const InitializationSettings(android: androidInit),
+      onDidReceiveNotificationResponse: (response) {
+        final payload = response.payload;
+        if (payload == null || payload.isEmpty) return;
+        try {
+          final parsed = jsonDecode(payload);
+          if (parsed is Map<String, dynamic>) {
+            onNotificationTap?.call(parsed);
+            return;
+          }
+          if (parsed is Map) {
+            onNotificationTap?.call(
+              parsed.map(
+                (key, value) => MapEntry(key.toString(), value),
+              ),
+            );
+          }
+        } catch (e, st) {
+          debugPrint('FcmForegroundNotifications.tap: $e\n$st');
+        }
+      },
     );
     final androidImpl = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -76,6 +99,7 @@ class FcmForegroundNotifications {
         title: title,
         body: body.isEmpty ? ' ' : body,
         notificationDetails: details,
+        payload: data.isNotEmpty ? jsonEncode(data) : null,
       );
     } catch (e, st) {
       debugPrint('FcmForegroundNotifications.show: $e\n$st');

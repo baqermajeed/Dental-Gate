@@ -67,6 +67,20 @@ def _send_fcm_sync(
         notification=messaging.Notification(title=title, body=body),
         token=token,
         data=data or {},
+        android=messaging.AndroidConfig(
+            priority="high",
+            notification=messaging.AndroidNotification(
+                channel_id="dental_gate_push",
+                click_action="FLUTTER_NOTIFICATION_CLICK",
+                sound="default",
+            ),
+        ),
+        apns=messaging.APNSConfig(
+            headers={"apns-priority": "10"},
+            payload=messaging.APNSPayload(
+                aps=messaging.Aps(sound="default"),
+            ),
+        ),
     )
     messaging.send(msg)
 

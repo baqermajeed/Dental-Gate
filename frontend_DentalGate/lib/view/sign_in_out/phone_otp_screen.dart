@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:dental_gate/core/app_routes.dart';
 import 'package:dental_gate/models/otp_models.dart';
 import 'package:dental_gate/services/api_service.dart';
+import 'package:dental_gate/services/fcm_registration_service.dart';
 
 /// إدخال رمز التحقق المرسل إلى الهاتف بعد تسجيل الدخول أو إنشاء الحساب.
 class PhoneOtpScreen extends StatefulWidget {
@@ -103,6 +106,7 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
           );
           return;
         }
+        unawaited(FcmRegistrationService.instance.syncToBackend());
         Get.offAllNamed(Routes.main);
         return;
       }
@@ -117,6 +121,7 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
 
       if (verify.accountExists) {
         _showMessage('يوجد حساب بهذا الرقم. تم تسجيل دخولك.');
+        unawaited(FcmRegistrationService.instance.syncToBackend());
         Get.offAllNamed(Routes.main);
         return;
       }
@@ -135,6 +140,7 @@ class _PhoneOtpScreenState extends State<PhoneOtpScreen> {
         },
       );
       if (!mounted) return;
+      unawaited(FcmRegistrationService.instance.syncToBackend());
       Get.offAllNamed(Routes.main);
     } on ApiException catch (e) {
       _showMessage(e.message, error: true);
