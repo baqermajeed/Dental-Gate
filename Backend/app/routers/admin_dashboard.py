@@ -2,6 +2,7 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 
 from beanie import PydanticObjectId
+from beanie.operators import In
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 
 from app.constants import Role
@@ -55,7 +56,7 @@ async def get_dashboard_overview():
     jobs = await JobPosting.find_all().to_list()
     applications = await JobApplication.find_all().to_list()
     if dentist_ids:
-        profiles = await DoctorProfile.find(DoctorProfile.user_id.in_(dentist_ids)).to_list()
+        profiles = await DoctorProfile.find(In(DoctorProfile.user_id, dentist_ids)).to_list()
     else:
         profiles = []
     notifications = await UserNotification.find_all().to_list()
@@ -154,19 +155,19 @@ async def list_admin_users(
     users = await User.find(User.role == Role.DENTIST).sort(-User.created_at).to_list()
     user_ids = [PydanticObjectId(u.id) for u in users]
     if user_ids:
-        profiles = await DoctorProfile.find(DoctorProfile.user_id.in_(user_ids)).to_list()
+        profiles = await DoctorProfile.find(In(DoctorProfile.user_id, user_ids)).to_list()
     else:
         profiles = []
     profile_map = {str(p.user_id): p for p in profiles}
 
     if user_ids:
-        jobs = await JobPosting.find(JobPosting.posted_by.in_(user_ids)).to_list()
+        jobs = await JobPosting.find(In(JobPosting.posted_by, user_ids)).to_list()
         applications = await JobApplication.find(
-            JobApplication.applicant_id.in_(user_ids)
+            In(JobApplication.applicant_id, user_ids)
         ).to_list()
-        saved_jobs = await SavedJob.find(SavedJob.user_id.in_(user_ids)).to_list()
+        saved_jobs = await SavedJob.find(In(SavedJob.user_id, user_ids)).to_list()
         saved_doctors = await SavedDoctor.find(
-            SavedDoctor.user_id.in_(user_ids)
+            In(SavedDoctor.user_id, user_ids)
         ).to_list()
     else:
         jobs = []
@@ -377,11 +378,11 @@ async def list_admin_jobs(
     poster_ids = [PydanticObjectId(job.posted_by) for job in jobs]
 
     if job_ids:
-        applications = await JobApplication.find(JobApplication.job_id.in_(job_ids)).to_list()
+        applications = await JobApplication.find(In(JobApplication.job_id, job_ids)).to_list()
     else:
         applications = []
     if poster_ids:
-        users = await User.find(User.id.in_(poster_ids)).to_list()
+        users = await User.find(In(User.id, poster_ids)).to_list()
     else:
         users = []
     user_map = {str(u.id): u for u in users}
