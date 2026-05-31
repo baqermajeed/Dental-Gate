@@ -26,6 +26,12 @@ const buildApiError = (status, body, fallbackMessage) => {
     body?.message ||
     (typeof body === "string" ? body : null) ||
     fallbackMessage;
+  if (status === 404) {
+    return new Error(
+      "مسارات admin-dashboard غير موجودة على السيرفر — ارفع آخر نسخة Backend وأعد تشغيل الخدمة. " +
+        `(status: ${status})`,
+    );
+  }
   return new Error(`${detail} (status: ${status})`);
 };
 
@@ -149,6 +155,13 @@ const createAppAnnouncement = async (payload, notificationsKey) =>
     "Failed to publish app announcement",
   );
 
+const checkAdminApiHealth = async () =>
+  requestJson(
+    "/admin-dashboard/health",
+    { method: "GET", headers: jsonHeaders() },
+    "Admin dashboard API is not available on this backend",
+  );
+
 const fetchAdminOverview = async (accessToken) =>
   requestJson(
     "/admin-dashboard/overview",
@@ -249,6 +262,7 @@ module.exports = {
   createHomeSlider,
   deleteHomeSlider,
   createAppAnnouncement,
+  checkAdminApiHealth,
   fetchAdminOverview,
   fetchAdminUsers,
   fetchVerificationQueue,

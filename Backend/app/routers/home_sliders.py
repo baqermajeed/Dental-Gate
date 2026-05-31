@@ -10,7 +10,7 @@ from app.models.home_slider import HomeSlider
 from app.models.job import JobPosting
 from app.models.user import User
 from app.schemas.home_slider import HomeSliderCreateIn, HomeSliderOut, HomeSliderUpdateIn
-from app.security.dashboard import get_slider_manager
+from app.security_dashboard import get_slider_manager
 
 router = APIRouter(prefix="/home-sliders", tags=["home-sliders"])
 settings = get_settings()

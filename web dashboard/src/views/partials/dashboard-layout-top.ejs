@@ -42,3 +42,10 @@
         <% if (flash) { %>
         <div class="flash <%= flash.type %>"><%= flash.message %></div>
         <% } %>
+
+        <% if (typeof adminApiWarning !== "undefined" && adminApiWarning) { %>
+        <div class="flash error admin-api-warning">
+          <strong>تحديث الباكند مطلوب:</strong>
+          <%= adminApiWarning %>
+        </div>
+        <% } %>

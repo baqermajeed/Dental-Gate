@@ -76,3 +76,13 @@ async def readyz():
     if not await ping_db():
         raise HTTPException(status_code=503, detail="Database not ready")
     return {"status": "ok", "database": "up"}
+
+
+@app.get("/admin-dashboard/health")
+async def admin_dashboard_health():
+    """فحص سريع: هل نسخة الباكند على السيرفر تحتوي API لوحة التحكم؟"""
+    return {
+        "status": "ok",
+        "admin_api": True,
+        "version": "1.0.0",
+    }
