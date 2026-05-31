@@ -6,6 +6,7 @@ const session = require("express-session");
 
 const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const { BACKEND_BASE_URL } = require("./services/backendApiService");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,4 +55,5 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Dashboard running on http://localhost:${PORT}`);
+  console.log(`Backend API: ${BACKEND_BASE_URL}`);
 });

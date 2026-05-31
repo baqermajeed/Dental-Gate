@@ -33,6 +33,10 @@
               Welcome,
               <strong><%= currentUser?.name || currentUser?.email || "Admin" %></strong>
             </p>
+            <p class="backend-link">
+              Backend:
+              <code><%= backendBaseUrl %></code>
+            </p>
           </div>
           <form method="POST" action="/logout">
             <button type="submit" class="btn danger">Logout</button>

@@ -14,6 +14,13 @@ const setFlash = (req, type, message) => {
   req.session.flash = { type, message };
 };
 
+const setApiErrorFlash = (req, res, error) => {
+  const isAdminApiMissing =
+    res.locals.adminApiReady === false || String(error.message).includes("status: 404");
+  if (isAdminApiMissing) return;
+  setFlash(req, "error", error.message);
+};
+
 const resolveAuth = (req) => {
   const accessToken = req.session.tokens?.accessToken || "";
   if (accessToken) return { accessToken, internalKey: null };
@@ -65,7 +72,7 @@ const showOverview = async (req, res) => {
       data,
     });
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
     return renderDashboardPage(res, "dashboard/overview", {
       activePage: "overview",
       data: {
@@ -97,7 +104,7 @@ const showUsers = async (req, res) => {
       result,
     });
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
     return renderDashboardPage(res, "dashboard/users", {
       activePage: "users",
       filters,
@@ -118,7 +125,7 @@ const showVerifications = async (req, res) => {
       queue,
     });
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
     return renderDashboardPage(res, "dashboard/verifications", {
       activePage: "verifications",
       statusFilter,
@@ -136,7 +143,7 @@ const decidePracticeLicense = async (req, res) => {
     );
     setFlash(req, "success", "Practice license updated.");
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
   }
   return res.redirect(`/dashboard/verifications?status_filter=${encodeURIComponent(req.query.status_filter || "pending")}`);
 };
@@ -156,7 +163,7 @@ const decideAccreditedCourse = async (req, res) => {
     );
     setFlash(req, "success", "Accredited course updated.");
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
   }
   return res.redirect(`/dashboard/verifications?status_filter=${encodeURIComponent(req.query.status_filter || "pending")}`);
 };
@@ -178,7 +185,7 @@ const showJobs = async (req, res) => {
       result,
     });
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
     return renderDashboardPage(res, "dashboard/jobs", {
       activePage: "jobs",
       filters,
@@ -196,7 +203,7 @@ const updateJobStatus = async (req, res) => {
     );
     setFlash(req, "success", "Job status updated.");
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
   }
   return res.redirect(`/dashboard/jobs?${new URLSearchParams(req.query).toString()}`);
 };
@@ -206,7 +213,7 @@ const deleteJob = async (req, res) => {
     await withAuthRetry(req, ({ accessToken }) => backendApi.deleteAdminJob(accessToken, req.params.jobId));
     setFlash(req, "success", "Job deleted successfully.");
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
   }
   return res.redirect(`/dashboard/jobs?${new URLSearchParams(req.query).toString()}`);
 };
@@ -221,7 +228,7 @@ const showNotifications = async (req, res) => {
       logs,
     });
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
     return renderDashboardPage(res, "dashboard/notifications", {
       activePage: "notifications",
       logs: [],
@@ -258,7 +265,7 @@ const sendAppAnnouncement = async (req, res) => {
     const result = await backendApi.createAppAnnouncement(payload, DASHBOARD_NOTIFICATIONS_KEY);
     setFlash(req, "success", `Announcement sent. Created notifications: ${result.created || 0}`);
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
   }
   return res.redirect("/dashboard/notifications");
 };
@@ -275,7 +282,7 @@ const showSliders = async (req, res) => {
       jobs,
     });
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
     return renderDashboardPage(res, "dashboard/sliders", {
       activePage: "sliders",
       sliders: [],
@@ -301,7 +308,7 @@ const addSlider = async (req, res) => {
     });
     setFlash(req, "success", "Slider added successfully.");
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
   }
   return res.redirect("/dashboard/sliders");
 };
@@ -313,7 +320,7 @@ const deleteSlider = async (req, res) => {
     );
     setFlash(req, "success", "Slider deleted successfully.");
   } catch (error) {
-    setFlash(req, "error", error.message);
+    setApiErrorFlash(req, res, error);
   }
   return res.redirect("/dashboard/sliders");
 };
