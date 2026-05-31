@@ -33,6 +33,7 @@ from app.schemas.admin_dashboard import (
 from app.security import require_admin
 from app.services import experience_score_service as experience_score_svc
 from app.services.otp_service import iraqi_phone_for_display
+from app.utils.datetime_utils import ensure_utc
 
 router = APIRouter(
     prefix="/admin-dashboard",
@@ -99,7 +100,8 @@ async def get_dashboard_overview():
     active_jobs = 0
     expired_jobs = 0
     for job in jobs:
-        if job.application_deadline and job.application_deadline < now:
+        deadline = ensure_utc(job.application_deadline)
+        if deadline and deadline < now:
             expired_jobs += 1
         else:
             active_jobs += 1
@@ -113,7 +115,9 @@ async def get_dashboard_overview():
 
     kpis = DashboardKpiOut(
         total_dentists=len(dentists),
-        new_dentists_last_30_days=sum(1 for d in dentists if d.created_at >= from_30_days),
+        new_dentists_last_30_days=sum(
+            1 for d in dentists if ensure_utc(d.created_at) >= from_30_days
+        ),
         dentists_with_fcm=sum(1 for d in dentists if _normalize_text(d.fcm_token)),
         total_jobs=len(jobs),
         active_jobs=active_jobs,
