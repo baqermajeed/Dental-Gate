@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body class="dashboard-body">
+    <div class="dashboard-shell">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <h1>Dental Gate</h1>
+          <p>Admin Control Center</p>
+        </div>
+        <nav class="side-nav">
+          <% navItems.forEach((item) => { %>
+          <a
+            href="<%= item.href %>"
+            class="side-link <%= activePage === item.key ? 'active' : '' %>"
+          >
+            <span><%= item.label %></span>
+          </a>
+          <% }) %>
+        </nav>
+      </aside>
+
+      <main class="dashboard-main">
+        <header class="main-topbar">
+          <div>
+            <h2><%= pageTitle || "Dashboard" %></h2>
+            <p>
+              Welcome,
+              <strong><%= currentUser?.name || currentUser?.email || "Admin" %></strong>
+            </p>
+          </div>
+          <form method="POST" action="/logout">
+            <button type="submit" class="btn danger">Logout</button>
+          </form>
+        </header>
+
+        <% if (flash) { %>
+        <div class="flash <%= flash.type %>"><%= flash.message %></div>
+        <% } %>

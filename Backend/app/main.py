@@ -11,6 +11,7 @@ from app.config import get_settings
 from app.database import init_db, ping_db
 from app.rate_limit import limiter
 from app.routers import auth as auth_router
+from app.routers import admin_dashboard as admin_dashboard_router
 from app.routers import doctor_profile as doctor_profile_router
 from app.routers import home_sliders as home_sliders_router
 from app.routers import jobs as jobs_router
@@ -48,6 +49,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router.router)
+app.include_router(admin_dashboard_router.router)
 app.include_router(doctor_profile_router.router)
 app.include_router(jobs_router.router)
 app.include_router(saved_jobs_router.router)

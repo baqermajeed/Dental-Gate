@@ -1,0 +1,93 @@
+<%- include("../partials/dashboard-layout-top", { pageTitle: "Overview", title, navItems, activePage, currentUser, flash }) %>
+
+<section class="kpi-grid">
+  <article class="kpi-card">
+    <h3>Total Dentists</h3>
+    <p><%= data.kpis.total_dentists || 0 %></p>
+  </article>
+  <article class="kpi-card">
+    <h3>New 30 Days</h3>
+    <p><%= data.kpis.new_dentists_last_30_days || 0 %></p>
+  </article>
+  <article class="kpi-card">
+    <h3>Active Jobs</h3>
+    <p><%= data.kpis.active_jobs || 0 %></p>
+  </article>
+  <article class="kpi-card">
+    <h3>Total Applications</h3>
+    <p><%= data.kpis.total_applications || 0 %></p>
+  </article>
+  <article class="kpi-card">
+    <h3>Pending Verifications</h3>
+    <p><%= (data.kpis.pending_practice_licenses || 0) + (data.kpis.pending_courses || 0) %></p>
+  </article>
+  <article class="kpi-card">
+    <h3>Avg Peer Rating</h3>
+    <p><%= data.kpis.avg_peer_rating || 0 %></p>
+  </article>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <h3>Applications By Status</h3>
+    <div class="mini-bars">
+      <% Object.entries(data.applications_by_status || {}).forEach(([label, value]) => { %>
+      <div class="bar-row">
+        <span><%= label %></span>
+        <strong><%= value %></strong>
+      </div>
+      <% }) %>
+      <% if (!Object.keys(data.applications_by_status || {}).length) { %>
+      <p class="muted">No data available.</p>
+      <% } %>
+    </div>
+  </article>
+
+  <article class="panel">
+    <h3>Jobs By Status</h3>
+    <div class="mini-bars">
+      <% Object.entries(data.jobs_by_status || {}).forEach(([label, value]) => { %>
+      <div class="bar-row">
+        <span><%= label %></span>
+        <strong><%= value %></strong>
+      </div>
+      <% }) %>
+      <% if (!Object.keys(data.jobs_by_status || {}).length) { %>
+      <p class="muted">No data available.</p>
+      <% } %>
+    </div>
+  </article>
+</section>
+
+<section class="panel-grid">
+  <article class="panel">
+    <h3>Top Governorates</h3>
+    <div class="mini-bars">
+      <% Object.entries(data.users_by_governorate || {}).slice(0, 8).forEach(([label, value]) => { %>
+      <div class="bar-row">
+        <span><%= label %></span>
+        <strong><%= value %></strong>
+      </div>
+      <% }) %>
+      <% if (!Object.keys(data.users_by_governorate || {}).length) { %>
+      <p class="muted">No data available.</p>
+      <% } %>
+    </div>
+  </article>
+  <article class="panel">
+    <h3>Experience Tier Distribution</h3>
+    <div class="mini-bars">
+      <% Object.entries(data.users_by_tier || {}).forEach(([label, value]) => { %>
+      <div class="bar-row">
+        <span><%= label %></span>
+        <strong><%= value %></strong>
+      </div>
+      <% }) %>
+      <% if (!Object.keys(data.users_by_tier || {}).length) { %>
+      <p class="muted">No data available.</p>
+      <% } %>
+    </div>
+  </article>
+</section>
+
+<%- include("../partials/dashboard-layout-bottom") %>

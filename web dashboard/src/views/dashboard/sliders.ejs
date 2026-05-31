@@ -1,0 +1,61 @@
+<%- include("../partials/dashboard-layout-top", { pageTitle: "Sliders Studio", title, navItems, activePage, currentUser, flash }) %>
+
+<section class="panel">
+  <h3>Create New Slider</h3>
+  <form method="POST" action="/dashboard/sliders/add" class="form" enctype="multipart/form-data">
+    <label>Job</label>
+    <select name="jobId" required>
+      <option value="">Choose a job</option>
+      <% jobs.forEach((job) => { %>
+      <option value="<%= job.id %>">
+        <%= job.workplace_name %> - <%= job.required_specialty %> (<%= job.id %>)
+      </option>
+      <% }) %>
+    </select>
+    <label>Image</label>
+    <input name="imageFile" type="file" accept="image/*" required />
+    <button class="btn" type="submit">Publish Slider</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h3>Current Sliders</h3>
+    <span class="chip"><%= sliders.length %> sliders</span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Job ID</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sliders.forEach((slider) => { %>
+        <tr>
+          <td>
+            <a href="<%= slider.image_url_absolute %>" target="_blank" rel="noreferrer">
+              <img src="<%= slider.image_url_absolute %>" alt="slider" class="slider-thumb" />
+            </a>
+          </td>
+          <td><%= slider.job_id %></td>
+          <td><%= slider.created_at %></td>
+          <td>
+            <form method="POST" action="/dashboard/sliders/<%= slider.id %>/delete" onsubmit="return confirm('Delete this slider?')">
+              <button class="btn danger" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+        <% if (!sliders.length) { %>
+        <tr><td colspan="4" class="muted">No sliders yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include("../partials/dashboard-layout-bottom") %>

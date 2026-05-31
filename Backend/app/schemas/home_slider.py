@@ -8,6 +8,11 @@ class HomeSliderCreateIn(BaseModel):
     image_url: str = Field(..., min_length=1)
 
 
+class HomeSliderUpdateIn(BaseModel):
+    job_id: str | None = Field(default=None, min_length=1)
+    image_url: str | None = Field(default=None, min_length=1)
+
+
 class HomeSliderOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

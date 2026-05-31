@@ -1,0 +1,70 @@
+<%- include("../partials/dashboard-layout-top", { pageTitle: "Notifications Center", title, navItems, activePage, currentUser, flash }) %>
+
+<section class="panel">
+  <h3>Send App Announcement</h3>
+  <form method="POST" action="/dashboard/notifications/send" class="form">
+    <label>Title</label>
+    <input name="title" required maxlength="200" />
+    <label>Body</label>
+    <textarea name="body" rows="4" required maxlength="2000"></textarea>
+    <label class="checkbox">
+      <input id="sendToAll" name="sendToAll" type="checkbox" />
+      Send to all users
+    </label>
+    <label>Recipient User IDs</label>
+    <textarea
+      id="recipientUserIds"
+      name="recipientUserIds"
+      rows="4"
+      placeholder="user_id per line or separated by comma"
+    ></textarea>
+    <button class="btn" type="submit">Send Announcement</button>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h3>Announcement Log</h3>
+    <span class="chip"><%= logs.length %> broadcasts</span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Created</th>
+          <th>Title</th>
+          <th>Body</th>
+          <th>Recipients</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% logs.forEach((item) => { %>
+        <tr>
+          <td><%= item.created_at %></td>
+          <td><%= item.title %></td>
+          <td><%= item.body %></td>
+          <td><%= item.recipients_count %></td>
+        </tr>
+        <% }) %>
+        <% if (!logs.length) { %>
+        <tr><td colspan="4" class="muted">No announcements found.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  const sendToAllInput = document.getElementById("sendToAll");
+  const recipientsInput = document.getElementById("recipientUserIds");
+  const toggleRecipientsState = () => {
+    const disabled = sendToAllInput.checked;
+    recipientsInput.disabled = disabled;
+    recipientsInput.required = !disabled;
+    if (disabled) recipientsInput.value = "";
+  };
+  sendToAllInput.addEventListener("change", toggleRecipientsState);
+  toggleRecipientsState();
+</script>
+
+<%- include("../partials/dashboard-layout-bottom") %>

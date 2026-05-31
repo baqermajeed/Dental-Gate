@@ -3,13 +3,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 
 from app.config import get_settings
 from app.models.home_slider import HomeSlider
 from app.models.job import JobPosting
 from app.models.user import User
-from app.schemas.home_slider import HomeSliderCreateIn, HomeSliderOut
+from app.schemas.home_slider import HomeSliderCreateIn, HomeSliderOut, HomeSliderUpdateIn
 from app.security.dashboard import get_slider_manager
 
 router = APIRouter(prefix="/home-sliders", tags=["home-sliders"])
@@ -58,6 +58,57 @@ async def create_home_slider(
     )
     await item.insert()
     return _slider_to_out(item)
+
+
+@router.patch("/{slider_id}", response_model=HomeSliderOut)
+async def update_home_slider(
+    slider_id: str,
+    payload: HomeSliderUpdateIn,
+    current: User = Depends(get_slider_manager),
+):
+    try:
+        slider_oid = PydanticObjectId(slider_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid slider id")
+
+    item = await HomeSlider.get(slider_oid)
+    if not item:
+        raise HTTPException(status_code=404, detail="Slider not found")
+
+    if payload.job_id:
+        try:
+            job_oid = PydanticObjectId(payload.job_id)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid job id")
+        job = await JobPosting.get(job_oid)
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        item.job_id = job_oid
+
+    if payload.image_url:
+        item.image_url = payload.image_url.strip()
+
+    item.updated_at = datetime.now(timezone.utc)
+    await item.save()
+    return _slider_to_out(item)
+
+
+@router.delete("/{slider_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_home_slider(
+    slider_id: str,
+    current: User = Depends(get_slider_manager),
+):
+    try:
+        slider_oid = PydanticObjectId(slider_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid slider id")
+
+    item = await HomeSlider.get(slider_oid)
+    if not item:
+        raise HTTPException(status_code=404, detail="Slider not found")
+
+    await item.delete()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/upload", response_model=dict)

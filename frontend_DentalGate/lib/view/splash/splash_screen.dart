@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import 'package:dental_gate/core/app_routes.dart';
+import 'package:dental_gate/services/push_tap_router.dart';
 import 'package:dental_gate/services/token_storage.dart';
 import 'package:dental_gate/widgets/blue_circle_arrow_button.dart';
 
@@ -41,6 +42,12 @@ class _SplashScreenState extends State<SplashScreen> {
           tokens != null ? Routes.main : Routes.onboarding;
       debugPrint('Splash -> $target');
       await Get.offAllNamed<void>(target);
+      unawaited(
+        Future<void>.delayed(
+          const Duration(milliseconds: 250),
+          PushTapRouter.handleIfReady,
+        ),
+      );
     } on TimeoutException {
       debugPrint('Splash: readTokens timeout → onboarding');
       if (mounted) await Get.offAllNamed<void>(Routes.onboarding);

@@ -5,23 +5,48 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart'
     show TargetPlatform, debugPrint, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:dental_gate/core/app.dart';
-import 'package:dental_gate/core/app_routes.dart';
-import 'package:dental_gate/controllers/notifications_controller.dart';
 import 'package:dental_gate/firebase_options.dart';
 import 'package:dental_gate/services/fcm_foreground_notifications.dart';
-import 'package:dental_gate/services/token_storage.dart';
-import 'package:dental_gate/view/notifications/notifications_view.dart';
+import 'package:dental_gate/services/push_tap_router.dart';
 
 const Duration _fcmTokenTimeout = Duration(seconds: 12);
-const Duration _pushRetryDelay = Duration(milliseconds: 300);
-const int _maxPushOpenRetries = 10;
-Map<String, dynamic>? _pendingPushTapData;
-bool _pushOpenInProgress = false;
-int _pushOpenRetryCount = 0;
+const Duration _permissionTimeout = Duration(seconds: 6);
+
+Future<void> _requestNotificationPermissionSafely(
+  FirebaseMessaging messaging,
+) async {
+  try {
+    await messaging
+        .requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        )
+        .timeout(_permissionTimeout);
+  } on TimeoutException {
+    debugPrint('requestPermission timeout: سيكمل التطبيق بدون انتظار.');
+  } catch (e, st) {
+    debugPrint('requestPermission failed: $e\n$st');
+  }
+}
+
+Future<void> _readInitialPushMessage(FirebaseMessaging messaging) async {
+  try {
+    final initialMessage = await messaging.getInitialMessage().timeout(
+      const Duration(seconds: 3),
+      onTimeout: () => null,
+    );
+    if (initialMessage != null) {
+      PushTapRouter.setPending(initialMessage.data);
+      unawaited(PushTapRouter.handleIfReady());
+    }
+  } catch (e, st) {
+    debugPrint('getInitialMessage failed: $e\n$st');
+  }
+}
 /////
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -35,68 +60,8 @@ Map<String, dynamic> _normalizePushData(Map<String, dynamic> raw) {
 
 void _queuePushNavigation(Map<String, dynamic> data) {
   if (data.isEmpty) return;
-  _pendingPushTapData = _normalizePushData(data);
-  unawaited(_drainPushNavigationQueue());
-}
-
-Future<void> _openNotificationsFromPush() async {
-  if (!Get.isRegistered<NotificationsController>()) {
-    Get.put(NotificationsController(userId: ''), permanent: false);
-  } else {
-    unawaited(Get.find<NotificationsController>().loadNotifications());
-  }
-  await Get.to<void>(() => const NotificationsView());
-}
-
-Future<bool> _tryHandlePushTap(Map<String, dynamic> data) async {
-  if (Get.key.currentState == null) return false;
-
-  final hasSession = await TokenStorage.instance.readTokens() != null;
-  if (!hasSession) {
-    // لو المستخدم مسجل خروج، نتجاهل التنقل القادم من الإشعار.
-    return true;
-  }
-
-  final route = data['route']?.toString().trim();
-  if (route != null && route.isNotEmpty && route != Routes.splash) {
-    if (Get.currentRoute != route) {
-      await Get.toNamed<void>(route);
-    }
-    return true;
-  }
-
-  if (Get.currentRoute != Routes.main) {
-    await Get.offAllNamed<void>(Routes.main);
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-  }
-  await _openNotificationsFromPush();
-  return true;
-}
-
-Future<void> _drainPushNavigationQueue() async {
-  if (_pushOpenInProgress) return;
-  _pushOpenInProgress = true;
-  try {
-    while (_pendingPushTapData != null) {
-      final data = _pendingPushTapData!;
-      final handled = await _tryHandlePushTap(data);
-      if (handled) {
-        _pendingPushTapData = null;
-        _pushOpenRetryCount = 0;
-        continue;
-      }
-      _pushOpenRetryCount += 1;
-      if (_pushOpenRetryCount >= _maxPushOpenRetries) {
-        debugPrint('Push tap ignored: app was not ready in time');
-        _pendingPushTapData = null;
-        _pushOpenRetryCount = 0;
-        break;
-      }
-      await Future<void>.delayed(_pushRetryDelay);
-    }
-  } finally {
-    _pushOpenInProgress = false;
-  }
+  PushTapRouter.setPending(_normalizePushData(data));
+  unawaited(PushTapRouter.handleIfReady());
 }
 
 Future<void> _logFcmToken() async {
@@ -104,7 +69,7 @@ Future<void> _logFcmToken() async {
   try {
     final messaging = FirebaseMessaging.instance;
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
-      await messaging.requestPermission();
+      await _requestNotificationPermissionSafely(messaging);
     }
     final token = await messaging.getToken().timeout(
       _fcmTokenTimeout,
@@ -137,32 +102,36 @@ Future<void> _initFirebase() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     final messaging = FirebaseMessaging.instance;
-    if (!kIsWeb) {
-      await messaging.requestPermission(
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+      await _requestNotificationPermissionSafely(messaging);
+      await messaging.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
         sound: true,
       );
-      if (defaultTargetPlatform == TargetPlatform.iOS) {
-        await messaging.setForegroundNotificationPresentationOptions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
-      }
+    }
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      // تجنب تجميد البداية: طلب إذن الإشعارات على أندرويد يتم بالخلفية.
+      unawaited(
+        Future<void>.delayed(const Duration(milliseconds: 900), () async {
+          await _requestNotificationPermissionSafely(messaging);
+        }),
+      );
     }
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    await FcmForegroundNotifications.init();
+    await FcmForegroundNotifications.init().timeout(
+      const Duration(seconds: 4),
+      onTimeout: () {
+        debugPrint('FcmForegroundNotifications.init timeout');
+      },
+    );
     FcmForegroundNotifications.onNotificationTap = _queuePushNavigation;
     FcmForegroundNotifications.attachForegroundListener();
 
     FirebaseMessaging.onMessageOpenedApp.listen((message) {
       _queuePushNavigation(message.data);
     });
-    final initialMessage = await messaging.getInitialMessage();
-    if (initialMessage != null) {
-      _queuePushNavigation(initialMessage.data);
-    }
+    unawaited(_readInitialPushMessage(messaging));
     unawaited(_logFcmToken());
   } catch (e, st) {
     debugPrint('Firebase init skipped (استبدل firebase_options.dart): $e\n$st');

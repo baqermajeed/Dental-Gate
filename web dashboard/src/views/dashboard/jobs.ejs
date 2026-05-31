@@ -1,0 +1,74 @@
+<%- include("../partials/dashboard-layout-top", { pageTitle: "Jobs Moderation", title, navItems, activePage, currentUser, flash }) %>
+
+<section class="panel">
+  <form method="GET" action="/dashboard/jobs" class="inline-form">
+    <input name="q" value="<%= filters.q %>" placeholder="Search workplace, address, specialty" />
+    <select name="status_filter">
+      <option value="" <%= !filters.status_filter ? "selected" : "" %>>All Statuses</option>
+      <option value="pending" <%= filters.status_filter === "pending" ? "selected" : "" %>>pending</option>
+      <option value="accepted" <%= filters.status_filter === "accepted" ? "selected" : "" %>>accepted</option>
+      <option value="rejected" <%= filters.status_filter === "rejected" ? "selected" : "" %>>rejected</option>
+    </select>
+    <input name="limit" type="number" min="1" max="200" value="<%= filters.limit %>" />
+    <button class="btn" type="submit">Apply</button>
+    <a class="btn secondary" href="/dashboard/jobs">Reset</a>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h3>Jobs</h3>
+    <span class="chip">Total: <%= result.total %></span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Workplace</th>
+          <th>Specialty</th>
+          <th>Status</th>
+          <th>Poster</th>
+          <th>Applications</th>
+          <th>Created</th>
+          <th>Moderation</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% result.items.forEach((job) => { %>
+        <tr>
+          <td><strong><%= job.workplace_name %></strong><div class="muted"><%= job.workplace_address %></div></td>
+          <td><%= job.required_specialty %></td>
+          <td><span class="status"><%= job.status %></span></td>
+          <td><%= job.poster_name || job.posted_by %></td>
+          <td>
+            <div class="stat-inline">
+              <span>P: <%= job.pending_count %></span>
+              <span>A: <%= job.accepted_count %></span>
+              <span>R: <%= job.rejected_count %></span>
+            </div>
+          </td>
+          <td><%= job.created_at %></td>
+          <td>
+            <form method="POST" action="/dashboard/jobs/<%= job.id %>/status?<%= queryString %>" class="action-row">
+              <select name="status">
+                <option value="pending" <%= job.status === "pending" ? "selected" : "" %>>pending</option>
+                <option value="accepted" <%= job.status === "accepted" ? "selected" : "" %>>accepted</option>
+                <option value="rejected" <%= job.status === "rejected" ? "selected" : "" %>>rejected</option>
+              </select>
+              <button class="btn" type="submit">Update</button>
+            </form>
+            <form method="POST" action="/dashboard/jobs/<%= job.id %>/delete?<%= queryString %>" onsubmit="return confirm('Delete this job?');">
+              <button class="btn danger" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+        <% if (!result.items.length) { %>
+        <tr><td colspan="7" class="muted">No jobs found.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include("../partials/dashboard-layout-bottom") %>

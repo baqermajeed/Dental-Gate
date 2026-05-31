@@ -7,6 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
 from app.config import get_settings
+from app.constants import Role
 from app.models.user import User
 
 settings = get_settings()
@@ -75,3 +76,12 @@ async def get_current_user(
     if not user:
         raise credentials_exception
     return user
+
+
+async def require_admin(current: User = Depends(get_current_user)) -> User:
+    if current.role != Role.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return current

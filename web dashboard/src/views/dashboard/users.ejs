@@ -1,0 +1,65 @@
+<%- include("../partials/dashboard-layout-top", { pageTitle: "Users Management", title, navItems, activePage, currentUser, flash }) %>
+
+<section class="panel">
+  <h3>Search & Filters</h3>
+  <form method="GET" action="/dashboard/users" class="inline-form">
+    <input name="q" value="<%= filters.q %>" placeholder="Search name, phone, email" />
+    <input name="governorate" value="<%= filters.governorate %>" placeholder="Governorate" />
+    <input
+      name="professional_title"
+      value="<%= filters.professional_title %>"
+      placeholder="Professional title"
+    />
+    <input name="limit" type="number" min="1" max="200" value="<%= filters.limit %>" />
+    <button class="btn" type="submit">Apply</button>
+    <a class="btn secondary" href="/dashboard/users">Reset</a>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-head">
+    <h3>Users List</h3>
+    <span class="chip">Total: <%= result.total %></span>
+  </div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Governorate</th>
+          <th>Title</th>
+          <th>Tier</th>
+          <th>Jobs</th>
+          <th>Applications</th>
+          <th>Saved</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% result.items.forEach((u) => { %>
+        <tr>
+          <td><%= u.name || "-" %></td>
+          <td><%= u.phone %></td>
+          <td><%= u.email %></td>
+          <td><%= u.governorate || "-" %></td>
+          <td><%= u.professional_title || "-" %></td>
+          <td><%= u.experience_tier || "-" %></td>
+          <td><%= u.jobs_posted_count %></td>
+          <td><%= u.applications_count %></td>
+          <td><%= (u.saved_jobs_count || 0) + (u.saved_doctors_count || 0) %></td>
+          <td><%= u.created_at || "-" %></td>
+        </tr>
+        <% }) %>
+        <% if (!result.items.length) { %>
+        <tr>
+          <td colspan="10" class="muted">No users found.</td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<%- include("../partials/dashboard-layout-bottom") %>
